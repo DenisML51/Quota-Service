@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="/static/main.css" />
+    <link rel="stylesheet" href="/static/main.scss" />
+    <title>Кандидаты</title>
+</head>
+
+
+
+{% macro render_checkbox(name, relation, list_checked, name_check) %}
+<details open="open">
+    <summary><b>{{ name }}</b></summary>
+    <p>
+        {% for i in range(len(relation)) %}
+        {% set columns = relation.dtypes.index %}
+        {% set id_r = relation.loc[i, columns[0]] %}
+        <label>
+            {% if relation.loc[i, columns[0]] in list_checked%}
+                <input type="checkbox" name="{{name_check}}[]" value="{{ id_r }}" checked>
+            {% else %}
+                <input type="checkbox" name="{{name_check}}[]" value="{{ id_r }}">
+            {% endif %}
+            {{ relation.loc[i, columns[1]] }}
+        </label></br>
+        {% endfor %}
+    </p>
+</details>
+{% endmacro %}
+
+
+
+{% macro render_filt(name, relation, list_checked, name_check) %}
+<details open="open">
+    <summary><b>{{ name }}</b></summary>
+    <p>
+        {% for i in range(len(relation)) %}
+        {% set columns = relation.dtypes.index %}
+        {% set id_r = relation.loc[i, columns[0]] %}
+        <label>
+            {% if relation.loc[i, columns[0]] in list_checked%}
+                <input type="checkbox" name="{{name_check}}[]" value="{{ id_r }}" checked>
+            {% else %} 
+                <input type="checkbox" name="{{name_check}}[]" value="{{ id_r }}">
+            {% endif %}
+            {{ relation.loc[i, columns[0]] }}
+        </label></br>
+        {% endfor %}
+    </p>
+</details>
+{% endmacro %}
+
+{% macro candid_table(relation) %}
+    {% set n = len(relation) %}
+    <section>
+        <div align="center" class='table-wrapper'>
+        <h1>Найдено по запросу: {{search}}</h1>
+        </div>
+        <div class='table-container' align="center">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Город</th>
+                <th>Специализация</th>
+                <th>Опыт работы</th>                
+            </tr>
+            </thead>
+            <tbody>
+                {% for i in range(n) %}
+                {% for name in relation.dtypes.index %}
+                {% if name != 'id_ovz' %}
+                <td>{{ relation.loc[i, name] }}</td>
+                {% endif %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </section>
+{% endmacro %}
+
+<body>
+<!-- Вверхнее меню -->
+<div class="menu">
+    <ul>
+        <li class="logo"><a href="{{ url_for('index') }}">Квота-Сервис</a></li>   
+        <div class="opt">
+            {% if company == '' %}
+            <li><a class="qwerty" href="{{ url_for('candid') }}">Кандидаты</a></li>
+            {% else %}
+            <li><a class="qwerty" href="{{ url_for('lichkab') }}">Кандидаты</a></li>
+            {% endif %}
+
+            {% if company == '' %}
+            <li><button class = 'primary' onclick="window.dialog.showModal();">Мои Вакансии</button></li>
+            {% else %}
+            <li><a class="qwerty" href="{{ url_for('vacancy') }}">Мои Вакансии</a></li>
+            {% endif %}
+
+            {% if company == '' %}
+            <li><button class = 'primary' onclick="window.dialog.showModal();">Личный Кабинет</button></li>
+            {% else %}
+            <li><a class="qwerty" href="{{ url_for('kabinet') }}">Личный Кабинет</a></li>
+            {% endif %}       
+           </div>
+    </ul>
+</div>
+
+
+<!-- Окно поиска -->
+    <form action="/candid" method="get">
+        <div class="search">
+            <div class="text-field">
+                <div class="text-field__icon">
+                    {% if search != '' %}
+                        <input class="text-field__input" type="search" name="search_bar" id="find" placeholder={{str(search)}}>
+                    {% else %}
+                        <input class="text-field__input" type="search" name="search_bar" id="find" placeholder='Поиск по специальности'>
+                    {% endif %}
+                    <span class="text-field__aicon-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+        </div>
+        </form>
+
+
+        <div border="1">
+        <form action="/candid" method="get">
+            <div class="cont">
+            <div class="check">{{ render_checkbox('Город', city_db, city, 'city') }}</div>
+            <div class="check">{{ render_filt('Опыт работы', exp_db, exp, 'exp') }}</div>
+
+            <input class="submit-buttons" type="submit" value="Найти">
+            <input class="submit-buttons" type="submit" value="Очистить" name="Очистить">
+            </div>
+        </form>
+        </div>
+
+<!-- Таблица с ОВЗ -->
+{{ candid_table(ovz_db) }}
+
+<!-- Таблица с вакансиями -->
+{% if company == '' %}
+    <button align="center" class = 'primary' onclick="window.dialog.showModal();">Вакансии</button>
+{% else %}
+    <button align="center" class = 'primary'  action="/lichkab">Вакансии</button>
+{% endif %}
+
+<dialog id="dialog">
+    <h2>Войдите в аккаунт</h2>
+    <form action="/candid" method="get">
+    <p align="center"><div class="text-field-9 text-field_floating-2">
+      <input class="text-field__input" type="login" id="login" name="login" placeholder="login">
+      <label class="text-field__label" for="login">login</label>
+    </div></p>
+    <p align="center"><div class="text-field-9 text-field_floating-2">
+      <input class="text-field__input" type="password" id="password" name="password" placeholder="password">
+      <label class="text-field__label" for="password">password</label>
+    </div></p>
+    <p align="center"><button class = 'primary' type="submit" name="Войти1" value="1">Войти</button>
+    </p>
+    </form>
+    <button onclick="window.dialog.close();" aria-label="close" class="x">❌</button>
+</dialog>
+
+</body>
+</html>

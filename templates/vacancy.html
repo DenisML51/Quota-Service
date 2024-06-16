@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="/static/main.css" />
+    <link rel="stylesheet" href="/static/main.scss" />
+    <title>Мои Вакансии</title>
+</head>
+
+{% macro vacancy_table(relation) %}
+{% set n = len(relation) %}
+<section>
+    <div align="center">
+        <h1>Мои Вакансии</h1>
+    </div>
+    <div align="center">
+    <table>
+        <thead>
+        
+            <th>Название</th>
+            <th>Описание</th>
+            <th>Требуемая Специальность</th>
+            <th>Опыт Работы</th>
+            
+        </tr>
+        </thead>
+        <tbody>
+            {% for i in range(n) %}
+        <tr>
+            {% for name in relation.dtypes.index %}
+            {% if name != "id_comp_vacancy" %}
+            <td>{{ relation.loc[i, name] }}</td>
+            {% endif %}
+
+            {% endfor %}
+
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</section>
+{% endmacro %}
+
+<body>
+    <div class="menu">
+        <ul>
+            <li class="logo"><a href="{{ url_for('index') }}">Квота-Сервис</a></li>   
+            <div class="opt">
+                {% if company == '' %}
+                <li><a class="qwerty" href="{{ url_for('candid') }}">Кандидаты</a></li>
+                {% else %}
+                <li><a class="qwerty" href="{{ url_for('lichkab') }}">Кандидаты</a></li>
+                {% endif %}
+
+                {% if company == '' %}
+                <li><button class = 'primary' onclick="window.dialog.showModal();">Мои Вакансии</button></li>
+                {% else %}
+                <li><a class="qwerty" href="{{ url_for('vacancy') }}">Мои Вакансии</a></li>
+                {% endif %}
+
+                {% if company == '' %}
+                <li><button class = 'primary' onclick="window.dialog.showModal();">Личный Кабинет</button></li>
+                {% else %}
+                <li><a class="qwerty" href="{{ url_for('kabinet') }}">Личный Кабинет</a></li>
+                {% endif %}       
+               </div>
+        </ul>
+    </div>
+
+    {{vacancy_table(vac_df)}}
+
+
+
+
+
+      <dialog class="new_vacancy" id="new_vacancy">
+        <h2 align="center">Добавить Вакансию</h2>
+
+            <form action="/vacancy" method="get">
+                <p><div class="text-field-9 text-field_floating-2">
+                <input class="text-field__input" type="text" id="name" name="name" placeholder="Введите название">
+                <label class="text-field__label" for="name">Название</label>
+                </div></p>
+                <p><div class="text-field-9 text-field_floating-2">
+                <input class="text-field__input" type="text" id="descr" name="descr" placeholder="Введите описание">
+                <label class="text-field__label" for="descr">Описание</label>
+                </div>
+                </p>
+                <p><div class="text-field-9 text-field_floating-2">
+                    <input class="text-field__input" type="text" id="spec" name="spec" placeholder="Требуемая специальность">
+                    <label class="text-field__label" for="spec">Специальность</label>
+                    </div>
+                    </p>
+                    <p><div class="text-field-9 text-field_floating-2">
+                        <input class="text-field__input" type="text" id="exp" name="exp" placeholder="Требуемый опыт работы">
+                        <label class="text-field__label" for="exp">Опыт работы</label>
+                        </div>
+                        </p>
+                    <p align="center"><button class = 'primary' type="submit" name="Добавить" value="1">Добавить</button>
+                </p>
+            </form>
+
+        <button onclick="window.new_vacancy.close();" aria-label="close" class="x">❌</button>
+      </dialog>
+
+      <p  align="center">
+        <button class = 'primary' onclick="window.new_vacancy.showModal();">Создать новую вакансию</button></td>
+      </p>
+</body>
+</html>

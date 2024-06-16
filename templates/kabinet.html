@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="/static/main.css" />
+    <link rel="stylesheet" href="/static/main.scss" />
+    <title>Личный Кабинет</title>
+    <style>
+        .table-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .table-wrapper {
+            height: 650px; 
+            overflow-y: auto;
+        }
+        .table-wrapper-2 {
+            overflow-y: auto;
+        }
+        .hidden-table {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.5s ease;
+        }
+        .table-wrapper-inner {
+            height: 200px;
+            overflow-y: auto;
+        }
+        .collapsed-row {
+            display: none;
+            transition: display 0.3s ease;
+        }
+        .modal {
+            position: fixed;
+            top: 20px;
+            left: -100%;
+            width: 300px;
+            height: calc(100% - 40px);
+            background-color: rgba(255, 255, 255, 0.9); 
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+            transition: left 0.3s ease;
+            z-index: 1000;
+            border-radius: 10px; 
+        }
+        .modal.open {
+            left: 10px; 
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .modal-header h2 {
+            margin: 0;
+        }
+        .modal-close {
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        .filter-button {
+            cursor: pointer;
+            background-color: #3e72ed; 
+            border: none;
+            padding: 10px;
+            margin-left: 4em;
+            margin-bottom: 2em;
+            border-radius: 5px;
+        }
+        .filter-button svg {
+            fill: white; 
+        }
+        .modal-content {
+            padding: 20px;
+        }
+
+        * {
+          outline: 0;
+          font-family: sans-serif;
+        }
+        body {
+          background-color: #fafafa;
+        }
+        span.msg,
+        span.choose {
+          color: #555;
+          padding: 5px 0 10px;
+          display: inherit;
+        }
+        .container {
+          width: 70%;
+          margin: 50px auto 0;
+          text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        /*Styling Selectbox*/
+        .dropdown {
+          width: 100%;
+          display: inline-block;
+          background-color: #fff;
+          border-radius: 2px;
+          box-shadow: 0 0 2px rgb(204, 204, 204);
+          transition: all .5s ease;
+          position: relative;
+          font-size: 14px;
+          color: #474747;
+          height: 100%;
+          text-align: left;
+        }
+        .dropdown .select {
+            cursor: pointer;
+            display: block;
+            padding: 10px;
+        }
+        .dropdown .select > i {
+            font-size: 13px;
+            color: #888;
+            cursor: pointer;
+            transition: all .3s ease-in-out;
+            float: right;
+            line-height: 20px;
+        }
+        .dropdown:hover {
+            box-shadow: 0 0 4px rgb(204, 204, 204);
+        }
+        .dropdown:active {
+            background-color: #f8f8f8;
+        }
+        .dropdown.active:hover,
+        .dropdown.active {
+            box-shadow: 0 0 4px rgb(204, 204, 204);
+            border-radius: 2px 2px 0 0;
+            background-color: #f8f8f8;
+        }
+        .dropdown.active .select > i {
+            transform: rotate(-90deg);
+        }
+        .dropdown .dropdown-menu {
+            position: absolute;
+            background-color: #fff;
+            width: 100%;
+            left: 0;
+            margin-top: 1px;
+            box-shadow: 0 1px 2px rgb(204, 204, 204);
+            border-radius: 0 1px 2px 2px;
+            overflow: hidden;
+            display: none;
+            max-height: 144px;
+            overflow-y: auto;
+            z-index: 9;
+        }
+        .dropdown .dropdown-menu li {
+            padding: 10px;
+            transition: all .2s ease-in-out;
+            cursor: pointer;
+        } 
+        .dropdown .dropdown-menu {
+            padding: 0;
+            list-style: none;
+        }
+        .dropdown .dropdown-menu li:hover {
+            background-color: #f2f2f2;
+        }
+        .dropdown .dropdown-menu li:active {
+            background-color: #e2e2e2;
+        }
+
+        /* Styling for the submit button */
+        .submit-button {
+            cursor: pointer;
+            background-color: #3e72ed;
+            border: none;
+            padding: 10px 20px;
+            margin-right: 10px;
+            border-radius: 5px;
+            color: white;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+        .submit-button:hover {
+            background-color: #2b59c3;
+        }
+
+
+
+        /* Styles for the leaderboard */
+        #crm {
+            padding: 20px;
+            align-self: left;
+            position: fixed;
+            right: 630px;
+            top: 200px;
+            .leaderboard {
+                max-width: 390px;
+                width: 100%;
+                border-radius: 12px;
+            }
+
+            .crm-container {
+    position: fixed;
+    right: 20px; /* Расстояние от правой границы страницы */
+    top: 2%;
+    max-width: 300px;
+    margin: 10px;
+}
+            .leaderboard header {
+                --start: 15%;
+                height: 130px;
+                background-image: repeating-radial-gradient(circle at var(--start), transparent 0%, transparent 10%, rgba(54, 89, 219, 0.33) 10%, rgba(54, 89, 219, 0.33) 17%), linear-gradient(to right, #5b7cfa, #3659db);
+                color: #fff;
+                position: relative;
+                border-radius: 12px 12px 0 0;
+                overflow: hidden;
+            }
+            .leaderboard header .leaderboard__title {
+                position: absolute;
+                z-index: 2;
+                top: 50%;
+                right: calc(var(--start) * 0.75);
+                transform: translateY(-50%);
+                text-transform: uppercase;
+                margin: 0;
+            }
+            .leaderboard header .leaderboard__title span {
+                display: block;
+            }
+            .leaderboard header .leaderboard__title--top {
+                font-size: 24px;
+                font-weight: 700;
+                letter-spacing: 6.5px;
+            }
+            .leaderboard header .leaderboard__title--bottom {
+                font-size: 13px;
+                font-weight: 500;
+                letter-spacing: 3.55px;
+                opacity: 0.65;
+                transform: translateY(-2px);
+            }
+            .leaderboard header .leaderboard__icon {
+                fill: #fff;
+                opacity: 0.35;
+                width: 50px;
+                position: absolute;
+                top: 50%;
+                left: var(--start);
+                transform: translate(-50%, -50%);
+            }
+            .leaderboard__profiles {
+                background-color: #fff;
+                border-radius: 0 0 12px 12px;
+                padding: 15px 15px 20px;
+                display: grid;
+                row-gap: 8px;
+            }
+            .leaderboard__profile {
+                display: grid;
+                grid-template-columns: 1fr 3fr 1fr;
+                align-items: center;
+                padding: 10px 30px 10px 10px;
+                overflow: hidden;
+                border-radius: 10px;
+                box-shadow: 0 5px 7px -1px rgba(51, 51, 51, 0.23);
+                cursor: pointer;
+                transition: transform 0.25s cubic-bezier(0.7, 0.98, 0.86, 0.98), box-shadow 0.25s cubic-bezier(0.7, 0.98, 0.86, 0.98);
+                background-color: #fff;
+            }
+            .leaderboard__profile:hover {
+                transform: scale(1.2);
+                box-shadow: 0 20px 25px -5px rgba(51, 51, 51, 0.23);
+            }
+            .leaderboard__profile:hover .leaderboard__name {
+                color: #3659db;
+                font-weight: 700;
+            }
+            .leaderboard__profile:hover .leaderboard__value {
+                font-weight: 700;
+                opacity: 1;
+            }
+            .leaderboard__profile img {
+                border-radius: 100px;
+                border: 3px solid #d7e1ff;
+                width: 70px;
+            }
+            .leaderboard__name {
+                font-weight: 500;
+                display: block;
+                width: 100px;
+                font-size: 16px;
+                transition: color 0.25s ease-in-out, font-weight 0.25s ease-in-out;
+            }
+            .leaderboard__value {
+                font-weight: 500;
+                opacity: 0.65;
+                margin-left: 200px;
+                transition: opacity 0.25s ease-in-out, font-weight 0.25s ease-in-out;
+            }
+        }
+
+        #vacancy {
+            margin-left: 30px;
+            position: fixed;
+            width: 30%;
+            
+
+
+
+p {
+	margin: 0;
+	line-height: 1.6;
+    font-size: 20px;
+}
+
+ol {
+	list-style: none;
+	counter-reset: list;
+	padding: 0 1rem;
+}
+
+li {
+	--stop: calc(100% / var(--length) * var(--i));
+	--l: 62%;
+	--l2: 88%;
+	--h: calc((var(--i) - 1) * (180 / var(--length)));
+	--c1: hsl(var(--h), 71%, var(--l));
+	--c2: hsl(var(--h), 71%, var(--l2));
+	
+	position: relative;
+	counter-increment: list;
+	max-width: 45rem;
+	margin: 2rem auto;
+	padding: 2rem 1rem 1rem;
+	box-shadow: 0.1rem 0.1rem 1.5rem rgba(0, 0, 0, 0.3);
+	border-radius: 0.5rem;
+	overflow: hidden;
+	background-color: white;
+}
+
+li::before {
+	content: '';
+	display: block;
+	width: 100%;
+	height: 1rem;
+	position: absolute;
+	top: 0;
+	left: 0;
+	background: linear-gradient(to right, var(--c1) var(--stop), var(--c2) var(--stop));
+}
+
+h2 {
+	display: flex;
+	align-items: baseline;
+	margin: 0 0 1rem;
+	color: rgb(70 70 70);
+}
+
+h2::before {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex: 0 0 auto;
+	margin-right: 1rem;
+	width: 3rem;
+	height: 3rem;
+	content: counter(list);
+	padding: 1rem;
+	border-radius: 50%;
+	background-color: var(--c1);
+	color: white;
+}
+
+@media (min-width: 40em) {
+	li {
+		margin: 3rem auto;
+		padding: 3rem 2rem 2rem;
+	}
+	
+	h2 {
+		font-size: 30px;
+		margin: 0 0 2rem;
+	}
+	
+	h2::before {
+		margin-right: 1.5rem;
+	}
+}
+}     
+
+#candid {
+    margin-left: 1050px;
+    margin-top: 40px;
+    position: fixed;
+    width: 35%;
+    height: 700px; 
+            overflow-y: auto;
+}
+
+button {
+
+    border: none; /* Убираем рамку */
+   }
+
+
+    </style>
+</head>
+
+{% macro vacancy_table(relation) %}
+    {% set n = len(relation) %}
+    <div class='table-wrapper'>
+        <table>
+            <thead>
+            <tr>
+                <th>Название</th>
+                <th>Требуемая Специальность</th>
+                <th>Опыт Работы</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+                {% for i in range(n) %}
+                <tr>
+                    {% for name in relation.dtypes.index %}
+                    {% if name != "id_comp_vacancy" %}
+                    <td>{{ relation.loc[i, name] }}</td>
+                    {% endif %}
+                    {% endfor %}
+                    <form>
+                        <td><button class='primary' type="submit" name="vacan" value={{relation.loc[i, 'id_comp_vacancy']}} >Добавить</button>
+                        </td>
+                    </form>
+                </tr>
+
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endmacro %} 
+
+{% macro render_name_vacancy(relation) %}
+{% set n = len(relation) %}
+<form action="/kabinet" method="get">
+<div class="container">
+    <div class="dropdown" style="margin-right: 10px;">
+        <div class="select">
+            <span>Выберите вакансию</span>
+
+          <i class="fa fa-chevron-left"></i>
+        </div>
+        <input type="hidden" name="gender">
+        <ul class="dropdown-menu">
+            {% for i in range(n) %}
+          <li id={{ relation.loc[i, 'id_comp_vacancy'] }}>{{ relation.loc[i, 'vac_name'] }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <button type="submit" class="submit-button">Найти</button>
+
+</div>
+    </form>
+{% endmacro %}
+
+{% macro render_manag(id) %}
+<div id="crm">
+    <form action="" method="get">
+    <article class="leaderboard">
+        <header>    
+          <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 511.999 511.999" style="enable-background:new 0 0 511.999 511.999;" xml:space="preserve" class="leaderboard__icon">
+
+          </svg>
+      
+          <h1 class="leaderboard__title"><span class="leaderboard__title--top">Управление</span><span class="leaderboard__title--bottom">кандидатом</span></h1>
+        </header>
+        
+        <main class="leaderboard__profiles">
+            {% if status1 == 1%}
+            <article class="leaderboard__profile">
+                <span class="leaderboard__name">Связаться с клиентом</span>
+                <span class="leaderboard__value"><span>🔵</span></span>
+              </article>
+              {% else %}
+          <button type="submit" name="1" value='1'><article class="leaderboard__profile">
+            <span class="leaderboard__name">Связаться с клиентом</span>
+            <span class="leaderboard__value"><span>🔴</span></span>
+          </article></button>
+          {% endif %}
+
+          {% if status2 != 1 %}
+          <button type="submit" name="2" value='2'><article class="leaderboard__profile">
+            <span class="leaderboard__name">Провести собеседование</span>
+            <span class="leaderboard__value"><span>🔴</span></span>
+          </article></button>
+          {% else %}
+          <article class="leaderboard__profile">
+            <span class="leaderboard__name">Провести собеседование</span>
+            <span class="leaderboard__value"><span>🔵</span></span>
+          </article>
+          {% endif %}
+          
+          {% if status3 != 1 %}
+          <button type="submit" name="3" value='3'><article class="leaderboard__profile">
+            <span class="leaderboard__name">Принять на работу</span>
+            <span class="leaderboard__value"><span>🔴</span></span>
+          </article></button>
+          {% else %}
+          <article class="leaderboard__profile">
+            <span class="leaderboard__name">Принять на работу</span>
+            <span class="leaderboard__value"><span>🔵</span></span>
+          </article>
+          {% endif %}
+          
+          {% if status4 != 1 %}
+          <button type="submit" name="4" value=1><article class="leaderboard__profile">
+            <span class="leaderboard__name" onclick="submit">Уволить с работы</span>
+            <span class="leaderboard__value"><span>🔴</span></span>
+          </article></button>
+          {% else %}
+          <article class="leaderboard__profile">
+            <span class="leaderboard__name" onclick="submit">Уволить с работы</span>
+            <span class="leaderboard__value"><span>🔵</span></span>
+          </article>
+          {% endif %}
+        </main>
+    </form>
+      </div>
+{% endmacro %}
+
+{% macro render_employee(table) %}
+{% set n = len(table) %}
+<div class='table-wrapper-2'>
+    <table>
+        <thead>
+            <tr>
+                <th>Резюме</th>
+                <th>Город</th>
+                <th>Опыт работы</th>
+            </tr>
+            </thead>
+        <tbody>
+            {% for i in range(n) %}
+            
+                <tr>
+
+                    {% for name in table.dtypes.index %}
+                    {% if name != 'id_comp_vacancy' %}
+                    {% if name != 'id' %}
+                    {% if name != 'id_employee' %}
+                    <td>{{ table.loc[i, name] }}</td>
+                    {% endif %}
+                    {% endif %}
+                    {% endif %}
+                    {% endfor %}
+                    <form>
+                        <td><button class='primary' type="submit" name="ovz" value={{table.loc[i, 'id_employee']}}>+</button>
+                        </td>
+                    </form>
+
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endmacro %}
+
+<body>
+    <div class="menu">
+        <ul>
+            <li class="logo"><a href="{{ url_for('index') }}">Квота-Сервис</a></li>   
+            <div class="opt">
+                {% if company == '' %}
+                <li><a class="qwerty" href="{{ url_for('candid') }}">Кандидаты</a></li>
+                {% else %}
+                <li><a class="qwerty" href="{{ url_for('lichkab') }}">Кандидаты</a></li>
+                {% endif %}
+
+                {% if company == '' %}
+                <li><button class = 'primary' onclick="window.dialog.showModal();">Мои Вакансии</button></li>
+                {% else %}
+                <li><a class="qwerty" href="{{ url_for('vacancy') }}">Мои Вакансии</a></li>
+                {% endif %}
+
+                {% if company == '' %}
+                <li><button class = 'primary' onclick="window.dialog.showModal();">Личный Кабинет</button></li>
+                {% else %}
+                <li><a class="qwerty" href="{{ url_for('kabinet') }}">Личный Кабинет</a></li>
+                {% endif %}       
+            </div>
+        </ul>
+    </div>
+
+    {{ render_name_vacancy(df_vacancy) }}
+    {{id_ovz}}
+
+
+    {% if empl != '' %}
+        {{ render_manag(vacancy_id) }}
+    {% endif %}
+
+    {% if vacancy_id != '' %}
+
+        <div id="candid">
+        {{ render_employee(df_employee) }}
+        </div>
+
+
+    <div id="vacancy">
+        <ol style="--length: 5" role="list">
+            <li style="--i: 7">
+                <h2>Название вакансии</h2>
+                <p>{{ vacancy.loc[0, 'vac_name'] }}</p>
+            </li>
+            <li style="--i: 7">
+                <h2>Описание вакансии</h2>
+                <p>{{ vacancy.loc[0, 'vac_desc'] }}</p>
+            </li>
+            <li style="--i: 7">
+                <h2>Требуемая вакансия</h2>
+                <p>{{ vacancy.loc[0, 'cv_need_spec'] }}</p>
+            </li>
+
+        </ol>
+
+{% endif %}
+
+</div>
+    <div class="modal" id="filterModal">
+        <div class="modal-header">
+            <h2>Фильтры</h2>
+            <span class="modal-close" onclick="toggleModal()">&times;</span>
+        </div>
+        <div class="modal-content">
+
+        </div>
+    </div>
+
+
+
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $('.dropdown').click(function () {
+            $(this).attr('tabindex', 1).focus();
+            $(this).toggleClass('active');
+            $(this).find('.dropdown-menu').slideToggle(300);
+        });
+        $('.dropdown').focusout(function () {
+            $(this).removeClass('active');
+            $(this).find('.dropdown-menu').slideUp(300);
+        });
+        $('.dropdown .dropdown-menu li').click(function () {
+            $(this).parents('.dropdown').find('span').text($(this).text());
+            $(this).parents('.dropdown').find('input').attr('value', $(this).attr('id'));
+        });
+
+    $('.dropdown-menu li').click(function () {
+      var input = '<strong>' + $(this).parents('.dropdown').find('input').val() + '</strong>',
+          msg = '<span class="msg">Hidden input value: ';
+      $('.msg').html(msg + input + '</span>');
+    }); 
+    </script>
+    
+</body>
+</html>

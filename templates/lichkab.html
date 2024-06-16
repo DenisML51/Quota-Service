@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="/static/main.css" />
+    <link rel="stylesheet" href="/static/main.scss" />
+    <title>Кандидаты</title>
+    <style>
+        .table-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .table-wrapper {
+            height: 650px; 
+            overflow-y: auto;
+        }
+        .table-wrapper-2 {
+            overflow-y: auto;
+        }
+        .hidden-table {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.5s ease;
+        }
+        .table-wrapper-inner {
+            height: 200px;
+            overflow-y: auto;
+        }
+        .collapsed-row {
+        display: none;
+        transition: display 0.3s ease;
+    }
+        .modal {
+            position: fixed;
+            top: 20px;
+            left: -100%;
+            width: 300px;
+            height: calc(100% - 40px);
+            background-color: rgba(255, 255, 255, 0.9); 
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+            transition: left 0.3s ease;
+            z-index: 1000;
+            border-radius: 10px; 
+        }
+        .modal.open {
+            left: 10px; 
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .modal-header h2 {
+            margin: 0;
+        }
+        .modal-close {
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+        .filter-button {
+            cursor: pointer;
+            background-color: #3e72ed; 
+            border: none;
+            padding: 10px;
+            margin-left: 4em;
+            margin-bottom: 2em;
+            border-radius: 5px;
+        }
+        .filter-button svg {
+            fill: white; 
+        }
+        .modal-content {
+            padding: 20px;
+        }
+    </style>
+</head>
+
+{% macro render_employee(table, id) %}
+{% set n = len(table) %}
+<div class='table-wrapper-2'>
+    <table>
+        <tbody>
+            {% for i in range(n) %}
+            {% if id == table.loc[i, 'id_comp_vacancy'] %}
+                <tr >
+                    {% for name in table.dtypes.index %}
+                    {% if name != 'id_comp_vacancy' %}
+                    <td>{{ table.loc[i, name] }}</td>
+                    {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endmacro %}
+
+{% macro render_checkbox(name, relation, list_checked, name_check) %}
+<details open="open">
+    <summary><b>{{ name }}</b></summary>
+    <p>
+        {% for i in range(len(relation)) %}
+        {% set columns = relation.dtypes.index %}
+        {% set id_r = relation.loc[i, columns[0]] %}
+        <label>
+            {% if relation.loc[i, columns[0]] in list_checked %}
+                <input type="checkbox" name="{{name_check}}[]" value="{{ id_r }}" checked>
+            {% else %}
+                <input type="checkbox" name="{{name_check}}[]" value="{{ id_r }}">
+            {% endif %}
+            {{ relation.loc[i, columns[1]] }}
+        </label></br>
+        {% endfor %}
+    </p>
+</details>
+{% endmacro %}
+
+{% macro render_filt(name, relation, list_checked, name_check) %}
+<details open="open">
+    <summary><b>{{ name }}</b></summary>
+    <p>
+        {% for i in range(len(relation)) %}
+        {% set columns = relation.dtypes.index %}
+        {% set id_r = relation.loc[i, columns[0]] %}
+        <label>
+            {% if relation.loc[i, columns[0]] in list_checked %}
+                <input type="checkbox" name="{{name_check}}[]" value="{{ id_r }}" checked>
+            {% else %}
+                <input type="checkbox" name="{{name_check}}[]" value="{{ id_r }}">
+            {% endif %}
+            {{ relation.loc[i, columns[0]] }}
+        </label></br>
+        {% endfor %}
+    </p>
+</details>
+{% endmacro %}
+
+{% macro candid_table(relation) %}
+    {% set n = len(relation) %}
+    <div class='table-wrapper'>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Город</th>
+                <th>Специализация</th>
+                <th>Опыт работы</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+                {% for i in range(n) %}
+                {% if str(id_ovz) == relation.loc[i, 'id_ovz'] %}
+                    <tr class="active-2">
+                        {% for name in relation.dtypes.index %}
+                        {% if name != 'id_ovz' %}
+                        <td>{{ relation.loc[i, name] }}</td>
+                        {% endif %}
+                        {% endfor %}
+                        <form action="/lichkab" method="get">
+                            <td><button class='primary' type="submit" name="ovz" value={{relation.loc[i, 'id_ovz']}}>+</button>
+                            </td>
+                        </form>
+                    </tr>
+                {% else %}
+                <tr>
+                    {% for name in relation.dtypes.index %}
+                    {% if name != 'id_ovz' %}
+                    <td>{{ relation.loc[i, name] }}</td>
+                    {% endif %}
+                    {% endfor %}
+                    <form>
+                        <td><button class='primary' type="submit" name="ovz" value={{relation.loc[i, 'id_ovz']}}>Выбрать</button>
+                        </td>
+                    </form>
+                </tr>
+                {% endif %}                
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endmacro %}
+
+{% macro vacancy_table(relation) %}
+    {% set n = len(relation) %}
+    <div class='table-wrapper'>
+        <table>
+            <thead>
+            <tr>
+                <th>Название</th>
+                <th>Требуемая Специальность</th>
+                <th>Опыт Работы</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+                {% for i in range(n) %}
+                <tr onclick="toggleEmployeeTable(this)">
+                    {% for name in relation.dtypes.index %}
+                    {% if name != "id_comp_vacancy" %}
+                    <td>{{ relation.loc[i, name] }}</td>
+                    {% endif %}
+                    {% endfor %}
+                    <form action="/lichkab" method="get">
+                        <td><button class='primary' type="submit" name="vacan" value={{relation.loc[i, 'id_comp_vacancy']}} >Добавить</button>
+                        </td>
+                    </form>
+                </tr>
+                <tr class="collapsed-row">
+                    <td colspan="4">
+                        {{render_employee(employee, relation.loc[i, 'id_comp_vacancy'])}}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endmacro %}
+
+
+
+
+<body>
+
+    <div class="menu">
+        <ul>
+            <li class="logo"><a href="{{ url_for('index') }}">Квота-Сервис</a></li>   
+            <div class="opt">
+                {% if company == '' %}
+                <li><a class="qwerty" href="{{ url_for('candid') }}">Кандидаты</a></li>
+                {% else %}
+                <li><a class="qwerty" href="{{ url_for('lichkab') }}">Кандидаты</a></li>
+                {% endif %}
+
+                {% if company == '' %}
+                <li><button class = 'primary' onclick="window.dialog.showModal();">Мои Вакансии</button></li>
+                {% else %}
+                <li><a class="qwerty" href="{{ url_for('vacancy') }}">Мои Вакансии</a></li>
+                {% endif %}
+
+                {% if company == '' %}
+                <li><button class = 'primary' onclick="window.dialog.showModal();">Личный Кабинет</button></li>
+                {% else %}
+                <li><a class="qwerty" href="{{ url_for('kabinet') }}">Личный Кабинет</a></li>
+                {% endif %}       
+               </div>
+        </ul>
+    </div>
+
+
+
+
+    <form action="/lichkab" method="get">
+        <div class="search">
+
+            <div class="text-field">
+                <div class="text-field__icon">
+                    {% if search != '' %}
+                        <input class="text-field__input" type="search" name="search_bar" id="find" placeholder={{str(search)}}>
+                    {% else %}
+                        <input class="text-field__input" type="search" name="search_bar" id="find" placeholder='Поиск по специальности'>
+                    {% endif %}
+                    <span class="text-field__aicon-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <button align="left" class="filter-button" onclick="toggleModal()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect y="4" width="24" height="2" fill="white"/>
+            <rect y="11" width="24" height="2" fill="white"/>
+            <rect y="18" width="24" height="2" fill="white"/>
+        </svg>
+    </button>
+
+
+    <div class="modal" id="filterModal">
+        <div class="modal-header">
+            <h2>Фильтры</h2>
+            <span class="modal-close" onclick="toggleModal()">&times;</span>
+        </div>
+        <div class="modal-content">
+            <form action="/lichkab" method="get">
+                <p>Найдено по запросу: {{search}}</p>
+                <div class="check">{{ render_checkbox('Город', city_db, city, 'city') }}</div>
+                <div class="check">{{ render_filt('Опыт работы', exp_db, exp, 'exp') }}</div>
+
+                <input class="submit-buttons" type="submit" value="Найти">
+                <input class="submit-buttons" type="submit" value="Очистить" name="Очистить">
+            </form>
+        </div>
+    </div>
+
+    <div class="table-container">
+        {{ candid_table(ovz_db) }}
+        {{ vacancy_table(df_vacancy) }}
+    </div>
+
+
+
+
+    <script>
+        function toggleModal() {
+            var modal = document.getElementById('filterModal');
+            modal.classList.toggle('open');
+        }
+
+        function toggleTable(button) {
+            var row = button.closest('tr');
+            var hiddenRow = row.nextElementSibling;
+            hiddenRow.classList.toggle('collapsed-row');
+        }
+
+        function toggleEmployeeTable(row) {
+        var hiddenRow = row.nextElementSibling;
+        hiddenRow.classList.toggle('collapsed-row');
+    }
+
+    </script>
+</body>
+</html>

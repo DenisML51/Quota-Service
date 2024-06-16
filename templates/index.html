@@ -1,0 +1,112 @@
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="/static/main.css" />
+        <title>Главная страница</title>
+    </head>
+
+    <body>
+
+        <div class="menu">
+            <ul>
+                <li class="logo"><a href="{{ url_for('index') }}">Квота-Сервис</a></li>   
+                <div class="opt">
+                    {% if company == '' %}
+                    <li><a class="qwerty" href="{{ url_for('candid') }}">Кандидаты</a></li>
+                    {% else %}
+                    <li><a class="qwerty" href="{{ url_for('lichkab') }}">Кандидаты</a></li>
+                    {% endif %}
+
+                    {% if company == '' %}
+                    <li><button class = 'primary' onclick="window.dialog.showModal();">Мои Вакансии</button></li>
+                    {% else %}
+                    <li><a class="qwerty" href="{{ url_for('vacancy') }}">Мои Вакансии</a></li>
+                    {% endif %}
+
+                    {% if company == '' %}
+                    <li><button class = 'primary' onclick="window.dialog.showModal();">Личный Кабинет</button></li>
+                    {% else %}
+                    <li><a class="qwerty" href="{{ url_for('kabinet') }}">Личный Кабинет</a></li>
+                    {% endif %}       
+                   </div>
+            </ul>
+        </div>
+        
+
+        <form action="{{url_for('candid')}}" method="get">
+        <div class="search">
+            <div class="text-field">
+                <div class="text-field__icon">
+                    {% if search != '' %}
+                        <input class="text-field__input" type="search" name="search_bar" id="find" placeholder={{search}} onclick="">
+                    {% else %}
+                        <input class="text-field__input" type="search" name="search_bar" id="find" placeholder='Поиск по специальности'>
+                    {% endif %}
+                    <span class="text-field__aicon-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+        </div>
+        </form>
+
+
+        <dialog id="dialog">
+            <h2>Войдите в аккаунт</h2>
+            <form action="" method="get">
+            <p align="center"><div class="text-field-9 text-field_floating-2">
+              <input class="text-field__input" type="login" id="login" name="login" placeholder="login">
+              <label class="text-field__label" for="login">login</label>
+            </div></p>
+            <p align="center"><div class="text-field-9 text-field_floating-2">
+              <input class="text-field__input" type="password" id="password" name="password" placeholder="password">
+              <label class="text-field__label" for="password">password</label>
+            </div></p>
+            <p align="center"><button class = 'primary' type="submit" name="Войти1" value="1">Войти</button>
+            </p>
+            </form>
+            <button onclick="window.dialog.close();" aria-label="close" class="x">❌</button>
+        </dialog>
+
+        <section class="pricing-table">
+            <div class="card">
+              <h4 class="type">Актуальная База Данных</h4>
+              <div class="price"><span></span> </div>
+              <h5 class="plan">Квота</h5>
+              <ul class="details">
+
+              </ul>
+              <div class="buy-button">
+                <h3 class="btn" onclick="">Подробнее</h3>
+              </div>
+            </div>
+          
+            <div class="card">
+              <h3 class="type">При поддержки Министерсва Труда</h3>
+              <div class="price"><span></span> </div>
+              <h5 class="plan">Квота</h5>
+              <ul class="details">
+
+              </ul>
+              <div class="buy-button">
+                <h3 class="btn" onclick="goto('https://www.youtube.com/watch?v=dQw4w9WgXcQ&pp=ygUJcmljayByb2xs')">Подробнее</h3>
+              </div>
+            </div>
+          
+            <div class="card">
+              <h4 class="type">Конфиденциальные Данные</h4>
+              <div class="price"><span></span></div>
+              <h5 class="plan">Квота</h5>
+              <ul class="details">
+
+              </ul>
+              <div class="buy-button">
+                <h3 class="btn" onclick="">Подробнее</h3>
+              </div>
+            </div>
+          
+          </section>
+
+    </body>
+</html>
